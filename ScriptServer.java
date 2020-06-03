@@ -1,14 +1,10 @@
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.StringJoiner;
+import java.util.*;
+import java.io.*;
+import java.util.function.Consumer;
 import java.util.concurrent.Executors;
 
 public class ScriptServer {
@@ -84,21 +80,36 @@ public class ScriptServer {
     }
 
     private static void executeShellScript(String pathToScript) throws IOException, InterruptedException {
-        ProcessBuilder processBuilder = new ProcessBuilder();
-        // Windows
-        processBuilder.command(pathToScript);
+	boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
 
-        Process process = processBuilder.start();
+	ProcessBuilder builder = new ProcessBuilder();
+	if (isWindows) {
+	    builder.command("cmd.exe", "/c", "dir");
+	} else {
+	    builder.command("sh", "-c", pathToScript);
+	}
+	builder.directory(new File(System.getProperty("user.home")));
+	Process process = builder.start();
+	StreamGobbler streamGobbler = new StreamGobbler(process.getInputStream(), System.out::println);
+	Executors.newSingleThreadExecutor().submit(streamGobbler);
+	int exitCode = process.waitFor();
 
-        BufferedReader reader =
-                new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-        String line;
-        while ((line = reader.readLine()) != null) {
-            System.out.println(line);
-        }
-
-        int exitCode = process.waitFor();
         System.out.println("\nExited with error code : " + exitCode);
     }
+
+	private static class StreamGobbler implements Runnable {
+	    private InputStream inputStream;
+	    private Consumer<String> consumer;
+	 
+	    public StreamGobbler(InputStream inputStream, Consumer<String> consumer) {
+		this.inputStream = inputStream;
+		this.consumer = consumer;
+	    }
+	 
+	    @Override
+	    public void run() {
+		new BufferedReader(new InputStreamReader(inputStream)).lines()
+		  .forEach(consumer);
+	    }
+}
 }
