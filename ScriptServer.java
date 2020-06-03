@@ -27,7 +27,7 @@ public class ScriptServer {
 
         server.createContext("/deploy", (httpExchange) -> {
             String method = httpExchange.getRequestMethod().toUpperCase();
-            if (method.equals("GET")) {
+            if (method.equals("GET") || method.equals("POST")) {
 
                 //Read request
                 String request = httpExchange.
