@@ -1,8 +1,5 @@
-package com.intgroup.htmlcheck;
-
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
-import org.apache.commons.text.StringEscapeUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
