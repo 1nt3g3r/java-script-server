@@ -23,7 +23,7 @@ public class ScriptServer {
         String token = args[1];
         String bashScript = args[2];
 
-        HttpServer server = HttpServer.create(new InetSocketAddress("localhost", port), 0);
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
         server.createContext("/deploy", (httpExchange) -> {
             String method = httpExchange.getRequestMethod().toUpperCase();
